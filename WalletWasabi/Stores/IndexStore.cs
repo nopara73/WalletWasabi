@@ -28,7 +28,7 @@ namespace WalletWasabi.Stores
 
 		private FilterModel StartingFilter { get; set; }
 		private Height StartingHeight { get; set; }
-		private List<FilterModel> Index { get; set; }
+		private Queue<FilterModel> Last1000Filters { get; set; } // Filters those aren't yet serialized.
 		private AsyncLock IndexLock { get; set; }
 
 		public event EventHandler<FilterModel> Reorged;
@@ -46,47 +46,57 @@ namespace WalletWasabi.Stores
 			StartingFilter = StartingFilters.GetStartingFilter(Network);
 			StartingHeight = StartingFilters.GetStartingHeight(Network);
 
-			Index = new List<FilterModel>();
 			HashChain = new HashChain();
-
+			Last1000Filters = new Queue<FilterModel>(1500);
 			IndexLock = new AsyncLock();
 
 			using (await IndexLock.LockAsync())
+			using (await IndexFileManager.Mutex.LockAsync())
 			{
-				using (await IndexFileManager.Mutex.LockAsync())
+				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+
+				TryEnsureBackwardsCompatibility();
+
+				if (Network == Network.RegTest)
 				{
-					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
-
-					TryEnsureBackwardsCompatibility();
-
-					if (Network == Network.RegTest)
-					{
-						IndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
-					}
-
-					if (!IndexFileManager.Exists())
-					{
-						await IndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
-					}
-
-					var height = StartingHeight;
-					try
-					{
-						foreach (var line in await IndexFileManager.ReadAllLinesAsync())
-						{
-							var filter = FilterModel.FromHeightlessLine(line, height);
-							height++;
-							Index.Add(filter);
-							HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
-						}
-					}
-					catch (FormatException)
-					{
-						// We found a corrupted entry. Stop here.
-						// Fix the currupted file.
-						await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine()));
-					}
+					IndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
 				}
+
+				if (!IndexFileManager.Exists())
+				{
+					await IndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
+				}
+
+				try
+				{
+					await InitializeFiltersAsync();
+				}
+				catch (FormatException)
+				{
+					// We found a corrupted entry. Stop here.
+					// Delete the currupted file.
+					IndexFileManager.DeleteMe();
+					await IndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToHeightlessLine() });
+					Logger.LogWarning<IndexStore>("Index file is corrupted. Deleted it.");
+					await InitializeFiltersAsync();
+				}
+			}
+		}
+
+		private async Task InitializeFiltersAsync()
+		{
+			var height = StartingHeight;
+			foreach (var lineTask in IndexFileManager.EnumerateAllLinesAsync())
+			{
+				var line = await lineTask;
+				var filter = FilterModel.FromHeightlessLine(line, height);
+				height++;
+				Last1000Filters.Enqueue(filter);
+				if (Last1000Filters.Count > 1000)
+				{
+					Last1000Filters.Dequeue();
+				}
+				HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
 			}
 		}
 
@@ -104,21 +114,23 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		public async Task AddNewFiltersAsync(params FilterModel[] filters)
+		public async Task AddNewFiltersAsync(CancellationToken cancel, params FilterModel[] filters)
 		{
 			foreach (var filter in filters)
 			{
 				using (await IndexLock.LockAsync())
 				{
-					Index.Add(filter);
+					StagedFilters.Add(filter);
 					HashChain.AddOrReplace(filter.BlockHeight.Value, filter.BlockHash);
 				}
 
 				NewFilter?.Invoke(this, filter); // Event always outside the lock.
 			}
+
+			_ = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
 		}
 
-		public async Task<FilterModel> RemoveLastFilterAsync()
+		public async Task<FilterModel> RemoveLastFilterAsync(CancellationToken cancel)
 		{
 			FilterModel filter = null;
 
@@ -130,6 +142,8 @@ namespace WalletWasabi.Stores
 			}
 
 			Reorged?.Invoke(this, filter);
+
+			_ = TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel);
 
 			return filter;
 		}
@@ -171,7 +185,12 @@ namespace WalletWasabi.Stores
 				using (await IndexFileManager.Mutex.LockAsync(cancel))
 				using (await IndexLock.LockAsync(cancel))
 				{
-					await IndexFileManager.WriteAllLinesAsync(Index.Select(x => x.ToHeightlessLine())); // Don't feed the cancellationToken here I always want this to finish running for safety.
+					await IndexFileManager.AppendAllLinesAsync(Last1000Filters.Select(x => x.ToHeightlessLine()), enableDuplicate: false); // Don't feed the cancellationToken here I always want this to finish running for safety.
+
+					while (Last1000Filters.Count > 1000)
+					{
+						Last1000Filters.Dequeue();
+					}
 				}
 			}
 			catch (Exception ex) when (ex is OperationCanceledException

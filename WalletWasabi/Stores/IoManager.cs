@@ -198,6 +198,69 @@ namespace WalletWasabi.Stores
 			}
 		}
 
+		public async Task AppendAllLinesAsync(IEnumerable<string> contents, CancellationToken cancellationToken = default, bool enableDuplicate = false)
+		{
+			if (!contents.Any()) return;
+
+			var first = contents.First();
+			var byteArrayBuilder = new ByteArrayBuilder();
+			foreach (var lineTask in EnumerateAllLinesAsync())
+			{
+				var line = await lineTask;
+				if (line == first)
+				{
+					break;
+				}
+
+				await File.AppendAllLinesAsync(NewFilePath, new[] { line });
+				byteArrayBuilder.Append(Encoding.ASCII.GetBytes(line));
+			}
+
+			foreach (var line in contents)
+			{
+				await File.AppendAllLinesAsync(NewFilePath, new[] { line });
+				byteArrayBuilder.Append(Encoding.ASCII.GetBytes(line));
+			}
+
+			byte[] hash = null;
+			try
+			{
+				IEnumerable<byte[]> arrays = contents.Select(x => Encoding.ASCII.GetBytes(x));
+				byte[] bytes = ByteHelpers.Combine(arrays);
+				hash = IoHelpers.GetHash(bytes);
+				if (File.Exists(DigestFilePath))
+				{
+					var digest = await File.ReadAllBytesAsync(DigestFilePath, cancellationToken);
+					if (ByteHelpers.CompareFastUnsafe(hash, digest))
+					{
+						return;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<IoManager>("Failed to read digest.");
+				Logger.LogInfo<IoManager>(ex);
+			}
+
+			IoHelpers.EnsureContainingDirectoryExists(NewFilePath);
+
+			await File.WriteAllLinesAsync(NewFilePath, contents, cancellationToken);
+			SafeMoveNewToOriginal();
+
+			try
+			{
+				IoHelpers.EnsureContainingDirectoryExists(DigestFilePath);
+
+				await File.WriteAllBytesAsync(DigestFilePath, hash);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<IoManager>("Failed to create digest.");
+				Logger.LogInfo<IoManager>(ex);
+			}
+		}
+
 		// Can't compute hash for append.
 		//public async Task AppendAllLinesAsync(IEnumerable<string> contents, CancellationToken cancellationToken = default)
 		//{
@@ -219,6 +282,20 @@ namespace WalletWasabi.Stores
 				filePath = safestFilePath;
 			}
 			return await File.ReadAllLinesAsync(filePath, cancellationToken);
+		}
+
+		public IEnumerable<Task<string>> EnumerateAllLinesAsync()
+		{
+			var filePath = OriginalFilePath;
+			if (TryGetSafestFileVersion(out string safestFilePath))
+			{
+				filePath = safestFilePath;
+			}
+
+			using (var sr = File.OpenText(filePath))
+			{
+				yield return sr.ReadLineAsync();
+			}
 		}
 
 		#endregion IoOperations
