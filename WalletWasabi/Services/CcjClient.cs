@@ -35,7 +35,7 @@ namespace WalletWasabi.Services
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		private IPEndPoint TorSocks5EndPoint { get; set; }
 
-		private decimal? CoordinatorFeepercentToCheck { get; set; }
+		private ServiceConfiguration ServiceConfiguration { get; set; }
 
 		public ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>> ExposedLinks { get; set; }
 
@@ -67,9 +67,10 @@ namespace WalletWasabi.Services
 			Network network,
 			KeyManager keyManager,
 			Func<Uri> ccjHostUriAction,
-			IPEndPoint torSocks5EndPoint)
+			IPEndPoint torSocks5EndPoint,
+			ServiceConfiguration serviceConfiguration)
 		{
-			Create(synchronizer, network, keyManager, ccjHostUriAction, torSocks5EndPoint);
+			Create(synchronizer, network, keyManager, ccjHostUriAction, torSocks5EndPoint, serviceConfiguration);
 		}
 
 		public CcjClient(
@@ -77,19 +78,20 @@ namespace WalletWasabi.Services
 			Network network,
 			KeyManager keyManager,
 			Uri ccjHostUri,
-			IPEndPoint torSocks5EndPoint)
+			IPEndPoint torSocks5EndPoint,
+			ServiceConfiguration serviceConfiguration)
 		{
-			Create(synchronizer, network, keyManager, () => ccjHostUri, torSocks5EndPoint);
+			Create(synchronizer, network, keyManager, () => ccjHostUri, torSocks5EndPoint, serviceConfiguration);
 		}
 
-		private void Create(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager, Func<Uri> ccjHostUriAction, IPEndPoint torSocks5EndPoint)
+		private void Create(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager, Func<Uri> ccjHostUriAction, IPEndPoint torSocks5EndPoint, ServiceConfiguration serviceConfiguration)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			CcjHostUriAction = Guard.NotNull(nameof(ccjHostUriAction), ccjHostUriAction);
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
 			TorSocks5EndPoint = torSocks5EndPoint;
-			CoordinatorFeepercentToCheck = null;
+			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 
 			ExposedLinks = new ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>>();
 			_running = 0;
@@ -481,6 +483,11 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
+				// Check coordinator parameters.
+				inputRegistrableRound.State.CoordinatorFeePercent;
+				inputRegistrableRound.State.FeePerInputs;
+				inputRegistrableRound.State.FeePerOutputs;
+
 				// Select the most suitable coins to regiter.
 				List<TxoRef> registrableCoins = State.GetRegistrableCoins(
 					inputRegistrableRound.State.MaximumInputCountPerPeer,

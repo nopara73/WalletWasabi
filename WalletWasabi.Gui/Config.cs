@@ -140,6 +140,17 @@ namespace WalletWasabi.Gui
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money DustThreshold { get; internal set; }
 
+		[JsonProperty(PropertyName = "CoordinatorFeePercentSanity")]
+		public decimal? CoordinatorFeePercentSanity { get; set; }
+
+		[JsonProperty(PropertyName = "CoinJoinFeePerInputsSanity")]
+		[JsonConverter(typeof(MoneySatoshiJsonConverter))]
+		public Money CoinJoinFeePerInputsSanity { get; set; }
+
+		[JsonProperty(PropertyName = "CoinJoinFeePerOutputsSanity")]
+		[JsonConverter(typeof(MoneySatoshiJsonConverter))]
+		public Money CoinJoinFeePerOutputsSanity { get; set; }
+
 		private Uri _backendUri;
 		private Uri _fallbackBackendUri;
 
@@ -284,7 +295,10 @@ namespace WalletWasabi.Gui
 			int? privacyLevelSome,
 			int? privacyLevelFine,
 			int? privacyLevelStrong,
-			Money dustThreshold)
+			Money dustThreshold,
+			decimal coordinatorFeePercentSanity,
+			Money coinJoinFeePerInputsSanity,
+			Money coinJoinFeePerOutputsSanity)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 
@@ -313,7 +327,11 @@ namespace WalletWasabi.Gui
 
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
 
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold);
+			CoordinatorFeePercentSanity = Guard.NotNull(nameof(coordinatorFeePercentSanity), coordinatorFeePercentSanity);
+			CoinJoinFeePerInputsSanity = Guard.NotNull(nameof(coinJoinFeePerInputsSanity), coinJoinFeePerInputsSanity);
+			CoinJoinFeePerOutputsSanity = Guard.NotNull(nameof(coinJoinFeePerOutputsSanity), coinJoinFeePerOutputsSanity);
+
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold, CoordinatorFeePercentSanity.Value, CoinJoinFeePerInputsSanity, CoinJoinFeePerOutputsSanity);
 		}
 
 		/// <inheritdoc />
@@ -357,6 +375,10 @@ namespace WalletWasabi.Gui
 			PrivacyLevelStrong = 50;
 			DustThreshold = Money.Coins(0.0001m);
 
+			CoordinatorFeePercentSanity = 0.003m;
+			CoinJoinFeePerInputsSanity = Money.Coins(0.002m);
+			CoinJoinFeePerOutputsSanity = Money.Coins(0.001m);
+
 			if (!File.Exists(FilePath))
 			{
 				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
@@ -366,7 +388,7 @@ namespace WalletWasabi.Gui
 				await LoadFileAsync();
 			}
 
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold);
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint(), DustThreshold, CoordinatorFeePercentSanity.Value, CoinJoinFeePerInputsSanity, CoinJoinFeePerOutputsSanity);
 
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
@@ -404,6 +426,10 @@ namespace WalletWasabi.Gui
 			PrivacyLevelStrong = config.PrivacyLevelStrong ?? PrivacyLevelStrong;
 
 			DustThreshold = config.DustThreshold ?? DustThreshold;
+
+			CoordinatorFeePercentSanity = config.CoordinatorFeePercentSanity ?? CoordinatorFeePercentSanity;
+			CoinJoinFeePerInputsSanity = config.CoinJoinFeePerInputsSanity ?? CoinJoinFeePerInputsSanity;
+			CoinJoinFeePerOutputsSanity = config.CoinJoinFeePerOutputsSanity ?? CoinJoinFeePerOutputsSanity;
 
 			ServiceConfiguration = config.ServiceConfiguration ?? ServiceConfiguration;
 
@@ -507,6 +533,21 @@ namespace WalletWasabi.Gui
 			}
 
 			if (DustThreshold != config.DustThreshold)
+			{
+				return true;
+			}
+
+			if (CoordinatorFeePercentSanity != config.CoordinatorFeePercentSanity)
+			{
+				return true;
+			}
+
+			if (CoinJoinFeePerInputsSanity != config.CoinJoinFeePerInputsSanity)
+			{
+				return true;
+			}
+
+			if (CoinJoinFeePerOutputsSanity != config.CoinJoinFeePerOutputsSanity)
 			{
 				return true;
 			}

@@ -15,6 +15,9 @@ namespace WalletWasabi.Models
 		public int PrivacyLevelStrong { get; set; }
 		public EndPoint BitcoinCoreEndPoint { get; set; }
 		public Money DustThreshold { get; set; }
+		public decimal CoordinatorFeePercentSanity { get; set; }
+		public Money CoinJoinFeePerInputsSanity { get; set; }
+		public Money CoinJoinFeePerOutputsSanity { get; set; }
 
 		public ServiceConfiguration(
 			int mixUntilAnonymitySet,
@@ -22,7 +25,10 @@ namespace WalletWasabi.Models
 			int privacyLevelFine,
 			int privacyLevelStrong,
 			EndPoint bitcoinCoreEndPoint,
-			Money dustThreshold)
+			Money dustThreshold,
+			decimal coordinatorFeePercentSanity,
+			Money coinJoinFeePerInputsSanity,
+			Money coinJoinFeePerOutputsSanity)
 		{
 			MixUntilAnonymitySet = Guard.NotNull(nameof(mixUntilAnonymitySet), mixUntilAnonymitySet);
 			PrivacyLevelSome = Guard.NotNull(nameof(privacyLevelSome), privacyLevelSome);
@@ -30,6 +36,9 @@ namespace WalletWasabi.Models
 			PrivacyLevelStrong = Guard.NotNull(nameof(privacyLevelStrong), privacyLevelStrong);
 			BitcoinCoreEndPoint = Guard.NotNull(nameof(bitcoinCoreEndPoint), bitcoinCoreEndPoint);
 			DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
+			CoordinatorFeePercentSanity = Guard.NotNull(nameof(coordinatorFeePercentSanity), coordinatorFeePercentSanity);
+			CoinJoinFeePerInputsSanity = Guard.NotNull(nameof(coinJoinFeePerInputsSanity), coinJoinFeePerInputsSanity);
+			CoinJoinFeePerOutputsSanity = Guard.NotNull(nameof(coinJoinFeePerOutputsSanity), coinJoinFeePerOutputsSanity);
 		}
 	}
 }
