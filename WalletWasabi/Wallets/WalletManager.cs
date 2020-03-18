@@ -267,8 +267,8 @@ namespace WalletWasabi.Wallets
 						return;
 					}
 
-					wallet.TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
-					wallet.ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
+					wallet.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
+					wallet.OnDequeue -= ChaumianClient_OnDequeue;
 
 					lock (Lock)
 					{
