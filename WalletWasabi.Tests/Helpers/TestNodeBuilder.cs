@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.Helpers
 					EndPointStrategy.Random,
 					txIndex: 1,
 					prune: 0,
-					userAgent: $"/WasabiClient:{Constants.ClientVersion}/"),
+					userAgent: $"/MustardWalletLTC:{Constants.ClientVersion}/"),
 				CancellationToken.None);
 		}
 	}
