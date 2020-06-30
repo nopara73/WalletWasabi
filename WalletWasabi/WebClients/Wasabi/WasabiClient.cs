@@ -270,7 +270,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			using var response = await TorClient.SendAndRetryAsync(
 				HttpMethod.Get,
 				HttpStatusCode.OK,
-				$"/api/v{Constants.BackendMajorVersion}/wasabi/legaldocuments",
+				$"/api/v{Constants.BackendMajorVersion}/MustardWallet/legaldocuments",
 				cancel: cancel).ConfigureAwait(false);
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
