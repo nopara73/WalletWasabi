@@ -55,7 +55,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 				else if (latestFailureMessage != ex.Message)
 				{
 					latestFailureMessage = ex.Message;
-					Logger.LogInfo($"Bitcoin Core is not yet ready... Reason: {latestFailureMessage}");
+					Logger.LogInfo($"Litecoin Core is not yet ready... Reason: {latestFailureMessage}");
 				}
 
 				if (process is null || process.HasExited)

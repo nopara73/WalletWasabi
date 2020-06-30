@@ -13,7 +13,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is decimal usdExchangeRate)
 			{
-				return $"Exchange Rate: {(long)usdExchangeRate} USD/BTC.";
+				return $"Exchange Rate: {(long)usdExchangeRate} USD/LTC.";
 			}
 			else
 			{

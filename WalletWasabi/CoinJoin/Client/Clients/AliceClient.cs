@@ -230,7 +230,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			var coinjoinHex = await response.Content.ReadAsJsonAsync<string>().ConfigureAwait(false);
 
-			Transaction coinJoin = Transaction.Parse(coinjoinHex, Network.Main);
+			Transaction coinJoin = Transaction.Parse(coinjoinHex, NBitcoin.Altcoins.Litecoin.Instance.Mainnet);
 			Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Acquired unsigned CoinJoin: {coinJoin.GetHash()}.");
 			return coinJoin;
 		}

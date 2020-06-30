@@ -54,7 +54,7 @@ namespace WalletWasabi.BitcoinCore
 				coreNode.Network = coreNodeParams.Network;
 				coreNode.MempoolService = coreNodeParams.MempoolService;
 
-				var configPath = Path.Combine(coreNode.DataDir, "bitcoin.conf");
+				var configPath = Path.Combine(coreNode.DataDir, "litecoin.conf");
 				coreNode.Config = new CoreConfig();
 				if (File.Exists(configPath))
 				{
@@ -140,7 +140,7 @@ namespace WalletWasabi.BitcoinCore
 					desiredConfigLines.Add($"{configPrefix}.prune = {coreNodeParams.Prune}");
 				}
 
-				var sectionComment = $"# The following configuration options were added or modified by Wasabi Wallet.";
+				var sectionComment = $"# The following configuration options were added or modified by Mustard Wallet.";
 				// If the comment is not already present.
 				// And there would be new config entries added.
 				var throwAwayConfig = new CoreConfig(coreNode.Config);
@@ -162,13 +162,13 @@ namespace WalletWasabi.BitcoinCore
 				// If it isn't already running, then we run it.
 				if (await coreNode.RpcClient.TestAsync().ConfigureAwait(false) is null)
 				{
-					Logger.LogInfo("Bitcoin Core is already running.");
+					Logger.LogInfo("Litecoin Core is already running.");
 				}
 				else
 				{
 					coreNode.Bridge = new BitcoindRpcProcessBridge(coreNode.RpcClient, coreNode.DataDir, printToConsole: false);
 					await coreNode.Bridge.StartAsync(cancel).ConfigureAwait(false);
-					Logger.LogInfo("Started Bitcoin Core.");
+					Logger.LogInfo("Started Litecoin Core.");
 				}
 				cancel.ThrowIfCancellationRequested();
 
@@ -257,10 +257,10 @@ namespace WalletWasabi.BitcoinCore
 				}
 			}
 
-			Logger.LogInfo("Did not stop Bitcoin Core. Reason:");
+			Logger.LogInfo("Did not stop Litecoin Core. Reason:");
 			if (exThrown is null)
 			{
-				Logger.LogInfo("Bitcoin Core was started externally.");
+				Logger.LogInfo("Litecoin Core was started externally.");
 			}
 			else
 			{
