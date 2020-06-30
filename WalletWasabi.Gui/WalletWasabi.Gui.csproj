@@ -9,20 +9,20 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Authors>nopara73;lontivero;danwalmsley</Authors>
-    <Company>zkSNACKs</Company>
+    <Authors>gabrielkrieger</Authors>
+    <Company>Mustard Wallet</Company>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <AssemblyTitle>Wasabi Wallet</AssemblyTitle>
+    <AssemblyTitle>Mustard Wallet for Litecoin</AssemblyTitle>
     <Description>
-      Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, CoinJoin, and coin control features.
+      Open-source, non-custodial, privacy focused Litecoin wallet for Windows, Linux, and Mac. Built-in Tor, CoinJoin, and coin control features. Based on Wasabi Wallet for Bitcoin .
     </Description>
     <Copyright>MIT</Copyright>
-    <PackageId>Wasabi Wallet</PackageId>
-    <PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;tumbler;coin;tor</PackageTags>
-    <PackageProjectUrl>https://github.com/zkSNACKs/WalletWasabi/</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageId>Mustard Wallet for Litecoin</PackageId>
+    <PackageTags>litecoin-wallet;privacy;litecoin;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;tumbler;coin;tor</PackageTags>
+    <PackageProjectUrl>https://github.com/MustardWallet/MustardWalletLTC/</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/MustardWallet/MustardWalletLTC/blob/master/LICENSE.md</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
+    <RepositoryUrl>https://github.com/MustardWallet/MustardWalletLTC/</RepositoryUrl>
     <!-- owners is not supported in MSBuild -->
   </PropertyGroup>
 

@@ -17,11 +17,11 @@ namespace WalletWasabi.WebClients
 	{
 		private readonly IExchangeRateProvider[] ExchangeRateProviders =
 		{
-			new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main)),
-			new BlockchainInfoExchangeRateProvider(),
+			// No Litecoin LTC support? new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main)),
+			// No Litecoin LTC support? new BlockchainInfoExchangeRateProvider(),
 			new CoinbaseExchangeRateProvider(),
 			new GeminiExchangeRateProvider(),
-			new ItBitExchangeRateProvider()
+			// No Litecoin LTC support? new ItBitExchangeRateProvider()
 		};
 
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()

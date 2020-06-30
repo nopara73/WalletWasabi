@@ -18,7 +18,7 @@ using WalletWasabi.Models;
 namespace WalletWasabi.Backend.Controllers
 {
 	/// <summary>
-	/// To interact with the Bitcoin Blockchain.
+	/// To interact with the Litecoin Blockchain.
 	/// </summary>
 	[Produces("application/json")]
 	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
@@ -40,7 +40,7 @@ namespace WalletWasabi.Backend.Controllers
 		public static object TransactionHexCacheLock { get; } = new object();
 
 		/// <summary>
-		/// Get fees for the requested confirmation targets based on Bitcoin Core's estimatesmartfee output.
+		/// Get fees for the requested confirmation targets based on Litecoin Core's estimatesmartfee output.
 		/// </summary>
 		/// <remarks>
 		/// Sample request:
@@ -116,7 +116,7 @@ namespace WalletWasabi.Backend.Controllers
 		///     GET /fees/ECONOMICAL
 		///
 		/// </remarks>
-		/// <param name="estimateSmartFeeMode">Bitcoin Core's estimatesmartfee mode: ECONOMICAL/CONSERVATIVE.</param>
+		/// <param name="estimateSmartFeeMode">Litecoin Core's estimatesmartfee mode: ECONOMICAL/CONSERVATIVE.</param>
 		/// <returns>A dictionary of fee targets and estimations.</returns>
 		/// <response code="200">A dictionary of fee targets and estimations.</response>
 		/// <response code="400">Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.</response>

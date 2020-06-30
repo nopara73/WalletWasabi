@@ -79,7 +79,7 @@ namespace WalletWasabi.Gui
 			using (BenchmarkLogger.Measure())
 			{
 				StoppingCts = new CancellationTokenSource();
-				DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+				DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("MustardWalletLTC", "Client"));
 				TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
 				Directory.CreateDirectory(DataDir);
 
@@ -201,7 +201,7 @@ namespace WalletWasabi.Gui
 									EndPointStrategy.Default(Network, EndPointType.Rpc),
 									txIndex: null,
 									prune: null,
-									userAgent: $"/WasabiClient:{Constants.ClientVersion}/"),
+									userAgent: $"/MustardWalletLTC:{Constants.ClientVersion}/"),
 								cancel)
 							.ConfigureAwait(false);
 					}
@@ -249,18 +249,18 @@ namespace WalletWasabi.Gui
 
 				#region P2PInitialization
 
-				if (Network == Network.RegTest)
+				if (Network == NBitcoin.Altcoins.Litecoin.Instance.Regtest)
 				{
 					Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
 					try
 					{
 						EndPoint bitcoinCoreEndpoint = Config.GetBitcoinP2pEndPoint();
 
-						Node node = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
+						Node node = await Node.ConnectAsync(NBitcoin.Altcoins.Litecoin.Instance.Regtest, bitcoinCoreEndpoint).ConfigureAwait(false);
 
 						Nodes.ConnectedNodes.Add(node);
 
-						RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
+						RegTestMempoolServingNode = await Node.ConnectAsync(NBitcoin.Altcoins.Litecoin.Instance.Regtest, bitcoinCoreEndpoint).ConfigureAwait(false);
 
 						RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 					}
@@ -277,7 +277,7 @@ namespace WalletWasabi.Gui
 						connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
 						// allowOnlyTorEndpoints: true - Connect only to onions and do not connect to clearnet IPs at all.
 						// This of course makes the first setting unnecessary, but it's better if that's around, in case someone wants to tinker here.
-						connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: Network == Network.Main);
+						connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: Network == NBitcoin.Altcoins.Litecoin.Instance.Mainnet);
 
 						await AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager);
 					}
@@ -303,12 +303,12 @@ namespace WalletWasabi.Gui
 				#region SynchronizerInitialization
 
 				var requestInterval = TimeSpan.FromSeconds(30);
-				if (Network == Network.RegTest)
+				if (Network == NBitcoin.Altcoins.Litecoin.Instance.Regtest)
 				{
 					requestInterval = TimeSpan.FromSeconds(5);
 				}
 
-				int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
+				int maxFiltSyncCount = Network == NBitcoin.Altcoins.Litecoin.Instance.Mainnet ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 
 				Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
 				Logger.LogInfo("Start synchronizing filters...");
@@ -369,10 +369,10 @@ namespace WalletWasabi.Gui
 		private async Task<AddressManagerBehavior> InitializeAddressManagerBehaviorAsync()
 		{
 			var needsToDiscoverPeers = true;
-			if (Network == Network.RegTest)
+			if (Network == NBitcoin.Altcoins.Litecoin.Instance.Regtest)
 			{
 				AddressManager = new AddressManager();
-				Logger.LogInfo($"Fake {nameof(AddressManager)} is initialized on the {Network.RegTest}.");
+				Logger.LogInfo($"Fake {nameof(AddressManager)} is initialized on the {NBitcoin.Altcoins.Litecoin.Instance.Regtest}.");
 			}
 			else
 			{
@@ -432,7 +432,7 @@ namespace WalletWasabi.Gui
 
 		private async Task AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager addressManager)
 		{
-			if (Network == Network.RegTest)
+			if (Network == NBitcoin.Altcoins.Litecoin.Instance.Regtest)
 			{
 				return;
 			}
@@ -520,11 +520,11 @@ namespace WalletWasabi.Gui
 
 					if (e.Transaction.Transaction.IsCoinBase)
 					{
-						NotifyAndLog($"{amountString} BTC", "Mined", NotificationType.Success, e, sender);
+						NotifyAndLog($"{amountString} LTC", "Mined", NotificationType.Success, e, sender);
 					}
 					else if (isSpent && receiveSpentDiff == miningFee)
 					{
-						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend", NotificationType.Information, e, sender);
+						NotifyAndLog($"Mining Fee: {amountString} LTC", "Self Spend", NotificationType.Information, e, sender);
 					}
 					else if (isSpent && receiveSpentDiff.Almost(Money.Zero, Money.Coins(0.01m)) && e.IsLikelyOwnCoinJoin)
 					{
@@ -534,24 +534,24 @@ namespace WalletWasabi.Gui
 					{
 						if (e.Transaction.IsRBF && e.Transaction.IsReplacement)
 						{
-							NotifyAndLog($"{amountString} BTC", "Received Replaceable Replacement Transaction", NotificationType.Information, e, sender);
+							NotifyAndLog($"{amountString} LTC", "Received Replaceable Replacement Transaction", NotificationType.Information, e, sender);
 						}
 						else if (e.Transaction.IsRBF)
 						{
-							NotifyAndLog($"{amountString} BTC", "Received Replaceable Transaction", NotificationType.Success, e, sender);
+							NotifyAndLog($"{amountString} LTC", "Received Replaceable Transaction", NotificationType.Success, e, sender);
 						}
 						else if (e.Transaction.IsReplacement)
 						{
-							NotifyAndLog($"{amountString} BTC", "Received Replacement Transaction", NotificationType.Information, e, sender);
+							NotifyAndLog($"{amountString} LTC", "Received Replacement Transaction", NotificationType.Information, e, sender);
 						}
 						else
 						{
-							NotifyAndLog($"{amountString} BTC", "Received", NotificationType.Success, e, sender);
+							NotifyAndLog($"{amountString} LTC", "Received", NotificationType.Success, e, sender);
 						}
 					}
 					else if (incoming < Money.Zero)
 					{
-						NotifyAndLog($"{amountString} BTC", "Sent", NotificationType.Information, e, sender);
+						NotifyAndLog($"{amountString} LTC", "Sent", NotificationType.Information, e, sender);
 					}
 				}
 				else if (isConfirmedReceive || isConfirmedSpent)
@@ -564,7 +564,7 @@ namespace WalletWasabi.Gui
 
 					if (isConfirmedSpent && receiveSpentDiff == miningFee)
 					{
-						NotifyAndLog($"Mining Fee: {amountString} BTC", "Self Spend Confirmed", NotificationType.Information, e, sender);
+						NotifyAndLog($"Mining Fee: {amountString} LTC", "Self Spend Confirmed", NotificationType.Information, e, sender);
 					}
 					else if (isConfirmedSpent && receiveSpentDiff.Almost(Money.Zero, Money.Coins(0.01m)) && e.IsLikelyOwnCoinJoin)
 					{
@@ -572,11 +572,11 @@ namespace WalletWasabi.Gui
 					}
 					else if (incoming > Money.Zero)
 					{
-						NotifyAndLog($"{amountString} BTC", "Receive Confirmed", NotificationType.Information, e, sender);
+						NotifyAndLog($"{amountString} LTC", "Receive Confirmed", NotificationType.Information, e, sender);
 					}
 					else if (incoming < Money.Zero)
 					{
-						NotifyAndLog($"{amountString} BTC", "Send Confirmed", NotificationType.Information, e, sender);
+						NotifyAndLog($"{amountString} LTC", "Send Confirmed", NotificationType.Information, e, sender);
 					}
 				}
 			}
@@ -775,7 +775,7 @@ namespace WalletWasabi.Gui
 			{
 				StoppingCts?.Dispose();
 				Interlocked.Exchange(ref _dispose, 2);
-				Logger.LogSoftwareStopped("Wasabi");
+				Logger.LogSoftwareStopped("Mustard Wallet for Litecoin");
 			}
 		}
 	}

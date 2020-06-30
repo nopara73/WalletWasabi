@@ -145,7 +145,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 			mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
-			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
+			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, NBitcoin.Altcoins.Litecoin.Instance.Mainnet);
 
 			HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 			KeyPath keyPath = DefaultAccountKeyPath;
@@ -172,7 +172,7 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
-			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
+			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, NBitcoin.Altcoins.Litecoin.Instance.Mainnet);
 
 			HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 
@@ -248,7 +248,7 @@ namespace WalletWasabi.Blockchain.Keys
 				return false;
 			}
 
-			encryptedSecret = new BitcoinEncryptedSecretNoEC(encsec);
+			encryptedSecret = new BitcoinEncryptedSecretNoEC(encsec, NBitcoin.Altcoins.Litecoin.Instance.Mainnet);
 			return true;
 		}
 
