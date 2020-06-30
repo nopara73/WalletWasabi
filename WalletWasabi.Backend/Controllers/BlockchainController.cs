@@ -21,7 +21,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// To interact with the Litecoin Blockchain.
 	/// </summary>
 	[Produces("application/json")]
-	[Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
+	[Route("api/v" + Constants.BackendMajorVersion + "/ltc/[controller]")]
 	public class BlockchainController : Controller
 	{
 		public BlockchainController(IMemoryCache memoryCache, Global global)
