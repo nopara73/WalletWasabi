@@ -264,31 +264,28 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 				{
 					var bestSet = best.ToHashSet();
 
-					// -- OPPORTUNISTIC CONSOLIDATION --
-					// https://github.com/zkSNACKs/WalletWasabi/issues/1651
-					if (bestSet.Count < maximumInputCountPerPeer) // Ensure limits.
+					// -- CONSOLIDATION --
+					var maxAdded = maximumInputCountPerPeer - bestSet.Count;
+					var randomLength = new Random().Next(maxAdded);
+					for (int j = 0; j < randomLength; j++)
 					{
-						// Generating toxic change leads to mass merging so it's better to merge sooner in coinjoin than the user do it himself in a non-CJ.
-						// The best selection's anonset should not be lowered by this merge.
-						int bestMinAnonset = bestSet.Min(x => x.AnonymitySet);
-						var bestSum = Money.Satoshis(bestSet.Sum(x => x.Amount));
-
-						if (!bestSum.Almost(amountNeeded, Money.Coins(0.0001m)) // Otherwise it wouldn't generate change so consolidation would make no sense.
-							&& bestMinAnonset > 1) // Red coins should never be merged.
+						if (bestSet.Count < maximumInputCountPerPeer) // Sanity check.
 						{
-							IEnumerable<SmartCoin> coinsThatCanBeConsolidated = coins
-								.Except(bestSet) // Get all the registrable coins, except the already chosen ones.
-								.Where(x =>
-									x.AnonymitySet >= bestMinAnonset // The anonset must be at least equal to the bestSet's anonset so we do not ruin the change's after mix anonset.
-									&& x.AnonymitySet > 1 // Red coins should never be merged.
-									&& x.Amount < amountNeeded // The amount needs to be smaller than the amountNeeded (so to make sure this is toxic change.)
-									&& bestSum + x.Amount > amountNeeded) // Sanity check that the amount added do not ruin the registration.
-								.OrderBy(x => x.Amount); // Choose the smallest ones.
+							// Generating toxic change leads to mass merging so it's better to merge sooner in coinjoin than the user do it himself in a non-CJ.
+							var bestSum = Money.Satoshis(bestSet.Sum(x => x.Amount));
+							int bestMinAnonset = bestSet.Min(x => x.AnonymitySet);
 
-							if (coinsThatCanBeConsolidated.Count() > 1) // Because the last one change should not be circulating, ruining privacy.
+							if (!bestSum.Almost(amountNeeded, Money.Coins(0.0001m))) // Otherwise it wouldn't generate change so consolidation would make no sense.
 							{
-								var bestCoinToAdd = coinsThatCanBeConsolidated.First();
-								bestSet.Add(bestCoinToAdd);
+								IEnumerable<SmartCoin> coinsThatCanBeConsolidated = coins
+									.Except(bestSet)
+									.Where(x => x.AnonymitySet >= bestMinAnonset); // The anonset must be at least equal to the bestSet's anonset so we do not ruin the change's after mix anonset.
+
+								if (coinsThatCanBeConsolidated.Count() > 1) // Because the last one change should not be circulating, ruining privacy.
+								{
+									var bestCoinToAdd = coinsThatCanBeConsolidated.RandomElement();
+									bestSet.Add(bestCoinToAdd);
+								}
 							}
 						}
 					}
