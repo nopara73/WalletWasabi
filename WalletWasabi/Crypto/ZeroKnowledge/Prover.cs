@@ -43,8 +43,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				throw new InvalidOperationException($"{nameof(publicPoint)} was incorrectly constructed.");
 			}
 
-			var generators = secretGeneratorPairs.Select(x => x.generator);
-			var challenge = Challenge.Build(publicPoint, nonce, generators);
+			var challenge = Challenge.Build(publicPoint, nonce);
 
 			var responses = new List<Scalar>();
 			foreach (var (secret, randomScalar) in secretGeneratorPairs
@@ -58,7 +57,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var proof = new KnowledgeOfRepresentation(nonce, responses);
 
 			// Sanity check:
-			if (!Verifier.Verify(proof, publicPoint, generators))
+			if (!Verifier.Verify(proof, publicPoint, secretGeneratorPairs.Select(x => x.generator)))
 			{
 				throw new InvalidOperationException($"{nameof(CreateProof)} or {nameof(Verifier.Verify)} is incorrectly implemented. Proof was built, but verification failed.");
 			}

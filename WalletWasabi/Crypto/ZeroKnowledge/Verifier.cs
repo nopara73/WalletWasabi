@@ -27,7 +27,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			var nonce = proof.Nonce;
 			var responses = proof.Responses;
 
-			var challenge = Challenge.Build(publicPoint, nonce, generators);
+			var challenge = Challenge.Build(publicPoint, nonce);
 			var a = challenge * publicPoint + nonce;
 
 			var b = GroupElement.Infinity;
