@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -7,6 +8,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing;
@@ -280,6 +282,39 @@ public class TransactionProcessor
 		}
 
 		BlockchainAnalyzer.Analyze(result.Transaction);
+
+		var txidstring = txId.ToString();
+		if (txidstring.StartsWith("89af2", StringComparison.OrdinalIgnoreCase)
+			|| txidstring.StartsWith("fbd75", StringComparison.OrdinalIgnoreCase)
+			|| txidstring.StartsWith("2e6e22", StringComparison.OrdinalIgnoreCase))
+		{
+			var sb = new StringBuilder();
+			sb.AppendLine($"FOUND { txidstring}");
+			sb.AppendLine("Wallet Input Anonsets:");
+			foreach (var input in result.Transaction.WalletInputs)
+			{
+				sb.AppendLine($"{input.HdPubKey.AnonymitySet} {input.ScriptPubKey.GetDestinationAddress(Network.TestNet)} {input.Amount}");
+			}
+			sb.AppendLine("Wallet Output Anonsets:");
+			foreach (var output in result.Transaction.WalletOutputs)
+			{
+				sb.AppendLine($"{output.HdPubKey.AnonymitySet} {output.ScriptPubKey.GetDestinationAddress(Network.TestNet)} {output.Amount}");
+			}
+			Logger.LogCritical(sb.ToString());
+		}
+
+		foreach (var g in result
+			.Transaction
+			.WalletOutputs
+			.GroupBy(x => x.Amount)
+			.Where(x => x.Count() > 1))
+		{
+			var anonset = g.First().HdPubKey.AnonymitySet;
+			if (g.Any(x => x.HdPubKey.AnonymitySet != anonset))
+			{
+				Logger.LogCritical($"BUG FOUND!");
+			}
+		}
 
 		return result;
 	}
