@@ -175,7 +175,7 @@ public class AmountDecomposer
 		return denominations.OrderByDescending(x => x.EffectiveAmount);
 	}
 
-	private IEnumerable<Output> GetPrefilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
+	private IEnumerable<Output> GetFilteredDenominations(IEnumerable<Money> allInputEffectiveValues)
 	{
 		var histogram = GetDenominationFrequencies(allInputEffectiveValues);
 
@@ -208,7 +208,7 @@ public class AmountDecomposer
 
 	public IEnumerable<Output> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
 	{
-		var preFilteredDenoms = GetPrefilteredDenominations(othersInputCoinEffectiveValues.Concat(myInputCoinEffectiveValues));
+		var preFilteredDenoms = GetFilteredDenominations(othersInputCoinEffectiveValues.Concat(myInputCoinEffectiveValues));
 		var myInputs = myInputCoinEffectiveValues.ToArray();
 		var myInputSum = myInputs.Sum();
 		var remaining = myInputSum;
