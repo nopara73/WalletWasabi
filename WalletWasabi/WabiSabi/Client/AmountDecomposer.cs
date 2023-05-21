@@ -215,7 +215,7 @@ public class AmountDecomposer
 		// Create the most naive decomposition for starter.
 		List<Output> naiveSet = new();
 		bool end = false;
-		foreach (var denom in preFilteredDenoms.Where(x => x.Amount <= remaining))
+		foreach (var denom in denoms.Where(x => x.Amount <= remaining))
 		{
 			while (denom.EffectiveCost <= remaining)
 			{
@@ -302,7 +302,7 @@ public class AmountDecomposer
 			}
 		}
 
-		var denomHashSet = preFilteredDenoms.ToHashSet();
+		var denomHashSet = denoms.ToHashSet();
 		var preCandidates = setCandidates.Select(x => x.Value).ToList();
 		preCandidates.Shuffle();
 
