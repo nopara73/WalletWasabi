@@ -52,7 +52,7 @@ public class Global : IDisposable
 		SegwitTaprootIndexBuilderService = new(IndexType.SegwitTaproot, RpcClient, HostedServices.Get<BlockNotifier>(), segwitTaprootIndexFilePath);
 		TaprootIndexBuilderService = new(IndexType.Taproot, RpcClient, HostedServices.Get<BlockNotifier>(), taprootIndexFilePath);
 
-		CoinJoinMempoolManager = new CoinJoinMempoolManager(CoinJoinIdStore, RpcClient);
+		CoinJoinMempoolManager = new CoinJoinMempoolManager(CoinJoinIdStore, HostedServices.Get<MempoolMirror>());
 	}
 
 	public string DataDir { get; }
