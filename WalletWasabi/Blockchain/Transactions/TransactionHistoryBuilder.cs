@@ -49,6 +49,7 @@ public class TransactionHistoryBuilder
 
 				txRecordList.Add(new TransactionSummary
 				{
+					Transaction = containingTransaction,
 					DateTime = dateTime,
 					Height = coin.Height,
 					Amount = coin.Amount,
