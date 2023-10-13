@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "WalletWasabi.Daemon": {
+      "commandName": "Project",
+      "commandLineArgs": "--network=testnet --wallet=T5 --jsonrpcserverenabled=true --loglevel=debug"
+    }
+  }
+}
